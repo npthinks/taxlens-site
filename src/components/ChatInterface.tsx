@@ -16,8 +16,7 @@ const INITIAL_MESSAGES: Message[] = [
         timestamp: new Date(Date.now() - 60000),
     },
 ];
-
-const API_URL = 'http://localhost:8000/api/ask';
+const API_URL = 'https://taxlens-vercel.vercel.app/api/ask';
 
 export function ChatInterface() {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
