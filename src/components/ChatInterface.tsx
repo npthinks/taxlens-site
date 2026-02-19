@@ -17,6 +17,8 @@ const INITIAL_MESSAGES: Message[] = [
     },
 ];
 
+const API_URL = 'http://localhost:8000/api/ask';
+
 export function ChatInterface() {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [inputValue, setInputValue] = useState('');
@@ -31,14 +33,15 @@ export function ChatInterface() {
         scrollToBottom();
     }, [messages]);
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!inputValue.trim()) return;
 
+        const question = inputValue.trim();
         const newUserMessage: Message = {
             id: Date.now().toString(),
             role: 'user',
-            content: inputValue,
+            content: question,
             timestamp: new Date(),
         };
 
@@ -46,17 +49,44 @@ export function ChatInterface() {
         setInputValue('');
         setIsTyping(true);
 
-        // Simulate AI response
-        setTimeout(() => {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+
+            let aiContent = data.answer;
+            if (data.sources && data.sources.length > 0) {
+                const sourcesText = data.sources.map((s: any) => s.content).join('\n\n');
+                aiContent += `\n\n**Sources:**\n${sourcesText}`;
+            }
+
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: "Based on your W-2 from 2024, your total wages were $125,000. You also contributed $15,000 to your 401(k), which is reflected in Box 12.",
+                content: aiContent,
                 timestamp: new Date(),
             };
             setMessages((prev) => [...prev, aiResponse]);
+        } catch (error) {
+            console.error('API Error:', error);
+            const errorMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: "❌ Error: Check if backend is running at localhost:8000.\n" + String(error),
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
 
     return (
