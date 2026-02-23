@@ -79,7 +79,7 @@ export function ChatInterface() {
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: "❌ Error: Check if backend is running at localhost:8000.\n" + String(error),
+                content: "❌ Error: Check if backend is running at Vercel" + String(error),
                 timestamp: new Date(),
             };
             setMessages((prev) => [...prev, errorMessage]);
@@ -131,7 +131,7 @@ export function ChatInterface() {
                                 : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
                                 }`}
                         >
-                            <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                            <p className="leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.content }}></p>
                             <span className={`text-[10px] mt-2 block opacity-70 ${message.role === 'user' ? 'text-blue-100' : 'text-slate-400'
                                 }`}>
                                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
