@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Copy, Check } from 'lucide-react';
 
 interface Message {
     id: string;
@@ -22,6 +22,7 @@ export function ChatInterface() {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -31,6 +32,16 @@ export function ChatInterface() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    const handleCopy = (id: string, content: string) => {
+        const plainText = content
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/g, ' ');
+        navigator.clipboard.writeText(plainText);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -126,16 +137,26 @@ export function ChatInterface() {
                         </div>
 
                         <div
-                            className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${message.role === 'user'
+                            className={`max-w-[80%] rounded-2xl p-4 shadow-sm group ${message.role === 'user'
                                 ? 'bg-blue-600 text-white rounded-tr-none'
-                                : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
+                                : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none transition-colors hover:bg-slate-50'
                                 }`}
                         >
                             <p className="leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.content }}></p>
-                            <span className={`text-[10px] mt-2 block opacity-70 ${message.role === 'user' ? 'text-blue-100' : 'text-slate-400'
-                                }`}>
-                                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                            <div className={`flex items-center mt-2 ${message.role === 'user' ? 'justify-end' : 'justify-between'}`}>
+                                <span className={`text-[10px] opacity-70 ${message.role === 'user' ? 'text-blue-100' : 'text-slate-400'}`}>
+                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                {message.role === 'assistant' && (
+                                    <button
+                                        onClick={() => handleCopy(message.id, message.content)}
+                                        className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                                        title="Copy response"
+                                    >
+                                        {copiedId === message.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -165,8 +186,8 @@ export function ChatInterface() {
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Ask a question about your taxes..."
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pr-12 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        placeholder={isTyping ? "Generating response..." : "Ask a question about your taxes..."}
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pr-12 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-100 disabled:text-slate-500"
                         disabled={isTyping}
                     />
                     <button
