@@ -1,9 +1,20 @@
+import { useState } from 'react';
 import { MainLayout } from './layouts/MainLayout';
 import { ChatInterface } from './components/ChatInterface';
+import type { SourceDocument } from './components/ChatInterface';
 
 function App() {
+    const [usedDocuments, setUsedDocuments] = useState<SourceDocument[]>([]);
+
+    const handleSourcesReceived = (sources: SourceDocument[]) => {
+        setUsedDocuments(prev => {
+            const newDocs = sources.filter(s => !prev.some(p => p.content === s.content));
+            return [...prev, ...newDocs];
+        });
+    };
+
     return (
-        <MainLayout>
+        <MainLayout usedDocuments={usedDocuments}>
             <div className="flex flex-col gap-8 min-h-[calc(100vh-12rem)]">
                 <section className="flex flex-col items-center gap-4 py-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800">
@@ -18,7 +29,7 @@ function App() {
                 </section>
 
                 <section className="flex-1 w-full animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                    <ChatInterface />
+                    <ChatInterface onSourcesReceived={handleSourcesReceived} />
                 </section>
             </div>
         </MainLayout>

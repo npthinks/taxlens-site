@@ -18,18 +18,33 @@ const INITIAL_MESSAGES: Message[] = [
 ];
 const API_URL = 'https://taxlens-vercel.vercel.app/api/ask';
 
-export function ChatInterface() {
+export interface SourceDocument {
+    content: string;
+    metadata?: any;
+}
+
+interface ChatInterfaceProps {
+    onSourcesReceived?: (sources: SourceDocument[]) => void;
+}
+
+export function ChatInterface({ onSourcesReceived }: ChatInterfaceProps = {}) {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    const isFirstRender = useRef(true);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         scrollToBottom();
     }, [messages]);
 
@@ -76,6 +91,10 @@ export function ChatInterface() {
             if (data.sources && data.sources.length > 0) {
                 const sourcesText = data.sources.map((s: any) => s.content).join('\n\n');
                 aiContent += `\n\n**Sources:**\n${sourcesText}`;
+
+                if (onSourcesReceived) {
+                    onSourcesReceived(data.sources);
+                }
             }
 
             const aiResponse: Message = {
