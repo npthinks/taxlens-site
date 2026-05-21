@@ -216,6 +216,10 @@ export function ChatInterface({ onSourcesReceived }: ChatInterfaceProps = {}) {
                 <p className="text-center text-xs text-slate-400 mt-2">
                     AI may produce inaccurate information. Please verify with a tax professional.
                 </p>
+                <p className="text-center text-xs text-slate-400 mt-1">
+                    Your questions may be logged to improve our service. No personal information is collected or stored.
+                </p>
+
             </div>
         </div>
     );
