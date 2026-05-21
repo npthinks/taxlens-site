@@ -88,13 +88,8 @@ export function ChatInterface({ onSourcesReceived }: ChatInterfaceProps = {}) {
             const data = await response.json();
 
             let aiContent = data.answer;
-            if (data.sources && data.sources.length > 0) {
-                const sourcesText = data.sources.map((s: any) => s.content).join('\n\n');
-                aiContent += `\n\n**Sources:**\n${sourcesText}`;
-
-                if (onSourcesReceived) {
-                    onSourcesReceived(data.sources);
-                }
+            if (onSourcesReceived && data.sources && data.sources.length > 0) {
+                onSourcesReceived(data.sources);
             }
 
             const aiResponse: Message = {
